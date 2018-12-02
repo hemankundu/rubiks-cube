@@ -36,21 +36,6 @@ class cube{
                     std::cin>>sides[s].mat[i][j];
                 }
             }
-            if(str[s]=="front") front=s;
-            else if(str[s]=="right") right=s;
-            else if(str[s]=="back") back=s;
-            else if(str[s]=="left") left=s;
-            else if(str[s]=="up") up=s;
-            else if(str[s]=="down") down=s;
-        }
-        for(int s=0;s<6;s++){
-            char ch=sides[s].mat[2][2];
-            if(ch=='w') white=s;
-            else if(ch=='g') green=s;
-            else if(ch=='y') yellow=s;
-            else if(ch=='b') blue=s;
-            else if(ch=='r') red=s;
-            else if(ch=='o') orange=s;
         }
         std::cout<<"..indput done!\n";
         print();
