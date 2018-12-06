@@ -9,11 +9,10 @@
 #define RED 5
 //using namespace std;
 
-int front,back,left,right,up,down;
-int white, blue, yellow, green, orange, red;
-
 class side{
     public:
+    side *l,*r,*u,*d,*f,*b;
+
     char mat[3][3];
     side(){
         for(short int i=0;i<3;i++)
@@ -22,155 +21,236 @@ class side{
             }
     }
 };
+
 class cube{
-    public:
     side sides[6];
-
-    void inputCube(){
-        std::cout<<"Begin cube input..\n";
-        std::string str[6]={"front", "right", "back", "left", "up", "down"};
-        for(int s=0;s<6;s++){
-            std::cout<<"Enter for "<<str[s]<<" side:";
-            for(int i=0;i<3;i++){
-                for(int j=0;j<3;j++){
-                    std::cin>>sides[s].mat[i][j];
-                }
-            }
-        }
-        std::cout<<"..indput done!\n";
-        print();
-    }
-
-    void print(){
-        std::string str;
-        for(int s=0;s<6;s++){
-            if(s==front) str= "front";
-            else if(s==right) str= "right";
-            else if(s==back) str= "back";
-            else if(s==left) str= "left";
-            else if(s==up) str= "up";
-            else if(s==down) str= "down";
-            std::cout<<"---------"<<str<<" side-----------\n";
-            for(int i=0;i<3;i++){
-                for(int j=0;j<3;j++){
-                    std::cout<<sides[s].mat[i][j]<<" ";
-                }
-                std::cout<<std::endl;
-            }
-        }
-    }
-
-    void rotateCW(){
-        short int i;
-        //save up
-        char upSaved[3];
-        for(i=0;i<3;i++)
-            upSaved[i] = sides[up].mat[i][2];
-        //up=front
-        for(i=0;i<3;i++)
-            sides[up].mat[i][2] = sides[front].mat[i][2];
-        //front=down
-        for(i=0;i<3;i++)
-            sides[front].mat[i][2] = sides[down].mat[i][2];
-        //down=back
-        for(i=0;i<3;i++)
-            sides[down].mat[i][2] = sides[back].mat[i][2];
-        //back=upSaved
-        for(i=0;i<3;i++)
-            sides[back].mat[i][2] = upSaved[i];
-        //adjust right side
-        //save right-up
-        for(i=0;i<3;i++)
-            upSaved[i]=sides[right].mat[0][i];
-        //up=left
-        for(i=0;i<3;i++)
-            sides[right].mat[0][i]=sides[right].mat[2-i][0];
-        //left=down
-        for(i=0;i<3;i++)
-            sides[right].mat[i][0]=sides[right].mat[2][i];
-        //down=right
-        for(i=0;i<3;i++)
-            sides[right].mat[2][i]=sides[right].mat[2-i][2];
-        //right=upSaved
-        for(i=0;i<3;i++)
-            sides[right].mat[i][2]=upSaved[i];
-    }
-    
-    void rotateCCW(){
-        //code this part
-        rotateCW();
-        rotateCW();
-        rotateCW();
-    }
-
-    void moveCCW(){
-        //rotate whole cube clockwise
-        int tmp=right;
-        right=front;
-        front=left;
-        left=back;
-        back=tmp;
-    }
-
-    void moveCW(){
-        //rotate whole cube counter clockwise
-        int tmp=left;
-        left=front;
-        front=right;
-        right=back;
-        back=tmp;
-    }
-
-    void performR(){
-        //perform R
-        rotateCW();
-    }
-
-    void performRI(){
-        //perform R'
-        rotateCCW();
-    }
-
-    void performF(){
-        //perform F
-        moveCCW();
-        rotateCW();
-    }
-
-    void performFI(){
-        //perform F'
-        moveCCW();
-        rotateCCW();
-    }
-
-    void performL(){
-        //perform L
-        moveCCW();
-        moveCCW();
-        rotateCW();
-    }
-
-    void performLI(){
-        //perform L'
-        moveCCW();
-        moveCCW();
-        rotateCCW();
-    }
-
-    void performB(){
-        //perform B
-        moveCW();
-        rotateCW();
-    }
-
-    void performBI(){
-        //perform B'
-        moveCW();
-        rotateCCW();
-    }
-
-
+    void rotateSurfaceCW(int side);
+    void rotateSurfaceCCW(int side);
+public:
+    int front,back,left,right,up,down;
+    int white, blue, yellow, green, orange, red;
+    void inputCube();
+    void print();
+    void flip();
+    void spinCW();
+    void spinCCW();
+    void setColorToFront(char clr);
+    void rotateCW();
+    void rotateCCW();
 };
+
+void cube::inputCube(){
+    std::cout<<"Begin cube input..\n";
+    std::string str[6]={"front", "right", "back", "left", "up", "down"};
+    for(int s=0;s<6;s++){
+        std::cout<<"Enter for "<<str[s]<<" side:";
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                std::cin>>sides[s].mat[i][j];
+            }
+        }
+        if(str[s]=="front") front=s;
+        else if(str[s]=="right") right=s;
+        else if(str[s]=="back") back=s;
+        else if(str[s]=="left") left=s;
+        else if(str[s]=="up") up=s;
+        else if(str[s]=="down") down=s;
+    }
+    sides[front].b=&sides[back];
+    sides[front].f=&sides[front];
+    sides[front].r=&sides[right];
+    sides[front].l=&sides[left];
+    sides[front].u=&sides[up];
+    sides[front].d=&sides[down];
+
+    sides[right].b=&sides[left];
+    sides[right].f=&sides[right];
+    sides[right].r=&sides[back];
+    sides[right].l=&sides[front];
+    sides[right].u=&sides[up];
+    sides[right].d=&sides[down];
+
+    sides[back].b=&sides[front];
+    sides[back].f=&sides[back];
+    sides[back].r=&sides[left];
+    sides[back].l=&sides[right];
+    sides[back].u=&sides[up];
+    sides[back].d=&sides[down];
+
+    sides[left].b=&sides[right];
+    sides[left].f=&sides[left];
+    sides[left].r=&sides[front];
+    sides[left].l=&sides[back];
+    sides[left].u=&sides[up];
+    sides[left].d=&sides[down];
+
+    sides[up].b=&sides[back];
+    sides[up].f=&sides[up];
+    sides[up].r=&sides[right];
+    sides[up].l=&sides[left];
+    sides[up].u=&sides[up];
+    sides[up].d=&sides[down];
+
+    std::cout<<"..indput done!\nPrinting input cube..\n";
+    print();
+}
+
+void cube::print(){
+    std::string str;
+    for(int s=0;s<6;s++){
+        if(s==front) str= "front";
+        else if(s==right) str= "right";
+        else if(s==back) str= "back";
+        else if(s==left) str= "left";
+        else if(s==up) str= "up";
+        else if(s==down) str= "down";
+        std::cout<<"---------"<<str<<" side-----------\n";
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
+                std::cout<<sides[s].mat[i][j]<<" ";
+            }
+            std::cout<<std::endl;
+        }
+    }
+}
+
+void cube::flip(){
+    //flip whole cube
+    int tmp=left;
+    left=up;
+    up=right;
+    right=down;
+    down=tmp;
+}
+
+void cube::rotateSurfaceCW(int side){
+    //save upper row
+    int saved[3],i;
+    for(i=0;i<3;i++)
+        saved[i]=sides[side].mat[0][i];
+    //up row = left row
+    for(i=0;i<3;i++)
+        sides[side].mat[0][i]=sides[side].mat[2-i][0];
+    //left row = down row
+    for(i=0;i<3;i++)
+        sides[side].mat[i][0]=sides[side].mat[2][i];
+    //down row = right row
+    for(i=0;i<3;i++)
+        sides[side].mat[2][i]=sides[side].mat[2-i][2];
+    //right row = saved
+    for(i=0;i<3;i++)
+        sides[side].mat[i][2]=saved[i];
+}
+
+void cube::rotateSurfaceCCW(int side){
+    //save upper row
+    int saved[3],i;
+    for(i=0;i<3;i++)
+        saved[i]=sides[side].mat[0][i];
+    //up = right
+    for(i=0;i<3;i++)
+        sides[side].mat[0][i]=sides[side].mat[i][2];
+    //right = down
+    for(i=0;i<3;i++)
+        sides[side].mat[i][2]=sides[side].mat[2][2-i];
+    //down = left
+    for(i=0;i<3;i++)
+        sides[side].mat[2][i]=sides[side].mat[i][0];
+    //left = saved
+    for(i=0;i<3;i++)
+        sides[side].mat[i][0]=saved[2-i];
+}
+
+void cube::spinCW(){
+    //spin whole cube clockwise
+    int tmp=front;
+    front=up;
+    up=back;
+    back=down;
+    down=tmp;
+    //update left side CW
+    rotateSurfaceCW(left);
+    //update right side CCW
+    rotateSurfaceCCW(right);
+}
+
+void cube::spinCCW(){
+    //spin whole cube counter clockwise
+    int saved[3],i,tmp=front;
+    front=down;
+    down=back;
+    back=up;
+    up=tmp;
+    //update left side CCW
+    rotateSurfaceCCW(left);
+    //update right side CW
+    rotateSurfaceCW(right);
+}
+
+void cube::setColorToFront(char clr){
+    int clri=0;
+    std::cout<<"Start Bringing "<<clr<<" to front..\n";
+    for(int s=0;s<6;s++){
+        if(sides[s].mat[2][2] == clr){
+            clri=s;
+            break;
+        }
+    }
+    std::cout<<"Target Color "<<clr<<" is at ";
+    if(clri==front){
+        std::cout<<"front side..\n";
+    } else if(clri==right){
+        std::cout<<"right side..\n";
+        flip();
+        spinCW();
+    } else if(clri==back){
+        std::cout<<"back side..\n";
+        spinCW();
+        spinCW();
+    } else if(clri==left){
+        std::cout<<"left side..\n";
+        flip();
+        spinCCW();
+    } else if(clri==up){
+        std::cout<<"up side..\n";
+        spinCW();
+    } else if(clri==down){
+        std::cout<<"down side..\n";
+        spinCCW();
+    }
+    std::cout<<"Done bringing "<<clr<<" to front..\n";
+}
+
+void cube::rotateCW(){
+    short int i;
+    //save up
+    char upSaved[3];
+    for(i=0;i<3;i++)
+        upSaved[i] = sides[up].mat[i][2];
+    //up=front
+    for(i=0;i<3;i++)
+        sides[up].mat[i][2] = sides[front].mat[i][2];
+    //front=down
+    for(i=0;i<3;i++)
+        sides[front].mat[i][2] = sides[down].mat[i][2];
+    //down=back
+    for(i=0;i<3;i++)
+        sides[down].mat[i][2] = sides[back].mat[i][2];
+    //back=upSaved
+    for(i=0;i<3;i++)
+        sides[back].mat[i][2] = upSaved[i];
+    //adjust right side CW
+    rotateSurfaceCW(right);
+}
+
+void cube::rotateCCW(){
+    //code this part
+    rotateCW();
+    rotateCW();
+    rotateCW();
+}
+
+
 
 
 void setup() {
@@ -189,38 +269,9 @@ int main(){
         char col;
         std::cout<<"Color? :";
         std::cin>>col;
-        std::cout<<"Operation? :";
-        std::string op;
-        std::cin>>op;
-
-        for(int s=0;s<6;s++){
-            char ch=cb.sides[s].mat[2][2];
-            if(ch=='w') white=s;
-            else if(ch=='g') green=s;
-            else if(ch=='y') yellow=s;
-            else if(ch=='b') blue=s;
-            else if(ch=='r') red=s;
-            else if(ch=='o') orange=s;
-        }
-
-        if(op=="r")
-            cb.performR();
-        else if(op=="cr")
-            cb.performRI();
-        else if(op=="l")
-            cb.performL();
-        else if(op=="cl")
-            cb.performLI();
-        else if(op=="f")
-            cb.performF();
-        else if(op=="cf")
-            cb.performFI();
-        else if(op=="b")
-            cb.performB();
-        else if(op=="cb")
-            cb.performBI();
-        else if(op=="exit")
+        if(col=='e')
             break;
+        cb.setColorToFront(col);
         cb.print();
     }
 }
