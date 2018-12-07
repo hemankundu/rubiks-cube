@@ -244,8 +244,8 @@ void cube::setColorToFront(char clr){
     std::cout<<"Done bringing "<<clr<<" to front..\n";
 }
 
-void cube::rotateCW(){
-    std::cout<<"[FUNCTION CALL] void cube::rotateCW()\n";
+void cube::rotateCCW(){
+    std::cout<<"[FUNCTION CALL] void cube::rotateCCW()\n";
     short int i;
     //save up
     char upSaved[3];
@@ -264,11 +264,11 @@ void cube::rotateCW(){
     for(i=0;i<3;i++)
         sides[back].mat[2][i] = upSaved[i];
     //adjust right side CW
-    rotateSurfaceCCW(right);
+    rotateSurfaceCW(right);
 }
 
-void cube::rotateCCW(){
-    std::cout<<"[FUNCTION CALL] void cube::rotateCCW()\n";
+void cube::rotateCW(){
+    std::cout<<"[FUNCTION CALL] void cube::rotateCW()\n";
     short int i;
     //save up
     char upSaved[3];
@@ -287,7 +287,7 @@ void cube::rotateCCW(){
     for(i=0;i<3;i++)
         sides[front].mat[2][i] = upSaved[i];
     //adjust right side CW
-    rotateSurfaceCW(right);
+    rotateSurfaceCCW(right);
 }
 
 void cube::setColorFrontToRight(){
