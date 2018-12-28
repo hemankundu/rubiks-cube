@@ -7,6 +7,7 @@
 #define ORANGE 4
 #define RED 5
 //using std::cout;
+using std::string;
 //using namespace std;
 /*int OUTCNT = 0;*/
 class AdjEdgeRes{
@@ -45,7 +46,7 @@ class cube{
     int getColorSide(char clr);
     void solveWhiteCrossPosOri(AdjEdgeRes adj, int edgei);
     bool setRightEdgeToSide(char clrRight, char clrAdj, char clrSide);
-    void rotateByColor(int s, bool cw);
+    void rotateByColor(char clr, bool cw);
     void whiteEdgeAtRightWAdj(char clr);
 public:
     int front,back,left,right,up,down;
@@ -63,7 +64,7 @@ public:
 };
 
 void cube::inputCube(){
-    std::cout<<"[FUNCTION CALL] void cube::inputCube()\n";
+    //std::cout<<"[FUNCTION CALL] void cube::inputCube()\n";
     std::cout<<"Begin cube input..\n";
     std::string str[6]={"front", "right", "back", "left", "up", "down"};
     for(int s=0;s<6;s++){
@@ -190,10 +191,10 @@ void cube::spinCCW(){
 }
 
 int cube::getColorSide(char clr){
-    std::cout<<"[FUNCTION CALL] int cube::getColorSide( clr="<< clr <<" )\n";
+    //std::cout<<"[FUNCTION CALL] int cube::getColorSide( clr="<< clr <<" )\n";
     for(int s=0;s<6;s++){
         if(sides[s].mat[1][1]==clr){
-            std::cout<<"[FUNCTION RETURN] int( "<< s <<" ) cube::getColorSide( clr="<< clr <<" )\n";
+            //std::cout<<"[FUNCTION RETURN] int( "<< s <<" ) cube::getColorSide( clr="<< clr <<" )\n";
             return s;
         }
     }
@@ -201,63 +202,63 @@ int cube::getColorSide(char clr){
 }
 
 void cube::setColorToFront(char clr){
-    std::cout<<"[FUNCTION CALL] void cube::setColorToFront( clr="<< clr <<" )\n";
+    //std::cout<<"[FUNCTION CALL] void cube::setColorToFront( clr="<< clr <<" )\n";
     int clri=getColorSide(clr);
-    std::cout<<"Start Bringing "<<clr<<" to front..\n";
-    std::cout<<"Target Color "<<clr<<" is at ";
+    //std::cout<<"Start Bringing "<<clr<<" to front..\n";
+    //std::cout<<"Target Color "<<clr<<" is at ";
     if(clri==front){
-        std::cout<<"front side..\n";
+        //std::cout<<"front side..\n";
     } else if(clri==right){
-        std::cout<<"right side..\n";
+        //std::cout<<"right side..\n";
         flip();
         spinCW();
     } else if(clri==back){
-        std::cout<<"back side..\n";
+        //std::cout<<"back side..\n";
         spinCW();
         spinCW();
     } else if(clri==left){
-        std::cout<<"left side..\n";
+        //std::cout<<"left side..\n";
         flip();
         spinCCW();
     } else if(clri==up){
-        std::cout<<"up side..\n";
+        //std::cout<<"up side..\n";
         spinCW();
     } else if(clri==down){
-        std::cout<<"down side..\n";
+        //std::cout<<"down side..\n";
         spinCCW();
     }
-    std::cout<<"Done bringing "<<clr<<" to front..\n";
+    //std::cout<<"Done bringing "<<clr<<" to front..\n";
 }
 
 void cube::setColorToRight(char clr){
-    std::cout<<"[FUNCTION CALL] void cube::setColorToRight( clr="<< clr <<" )\n";
+    //std::cout<<"[FUNCTION CALL] void cube::setColorToRight( clr="<< clr <<" )\n";
     int clri=getColorSide(clr);
-    std::cout<<"Start Bringing "<<clr<<" to right..\n";
-    std::cout<<"Target Color "<<clr<<" is at ";
+    //std::cout<<"Start Bringing "<<clr<<" to right..\n";
+    //std::cout<<"Target Color "<<clr<<" is at ";
     if(clri==front){
-        std::cout<<"front side..\n";
+        //std::cout<<"front side..\n";
         spinCW();
         flip();
     } else if(clri==right){
-        std::cout<<"right side..\n";
+        //std::cout<<"right side..\n";
     } else if(clri==back){
-        std::cout<<"back side..\n";
+        //std::cout<<"back side..\n";
         spinCCW();
         flip();
     } else if(clri==left){
-        std::cout<<"left side..\n";
+        //std::cout<<"left side..\n";
         flip();
         flip();
     } else if(clri==up){
-        std::cout<<"up side..\n";
+        //std::cout<<"up side..\n";
         spinCW();
         spinCW();
         flip();
     } else if(clri==down){
-        std::cout<<"down side..\n";
+        //std::cout<<"down side..\n";
         flip();
     }
-    std::cout<<"Done bringing "<<clr<<" to right..\n";
+    //std::cout<<"Done bringing "<<clr<<" to right..\n";
 }
 
 void cube::rotateCCW(){
@@ -307,19 +308,19 @@ void cube::rotateCW(){
 }
 
 void cube::setColorFrontToRight(){
-    std::cout<<"[FUNCTION CALL] void cube::setColorFrontToRight()\n";
+    //std::cout<<"[FUNCTION CALL] void cube::setColorFrontToRight()\n";
     spinCW();
     flip();
 }
 
 void cube::setColorRightToFront(){
-    std::cout<<"[FUNCTION CALL] void cube::setColorRightToFront()\n";
+    //std::cout<<"[FUNCTION CALL] void cube::setColorRightToFront()\n";
     flip();
     spinCW();
 }
 
-void cube::rotateByColor(int s, bool cw){
-    setColorToRight(sides[s].mat[1][1]);    
+void cube::rotateByColor(char clr, bool cw){
+    setColorToRight(clr);    
     if(cw){
         rotateCW();
     }else{
@@ -398,7 +399,7 @@ void cube::rotateByColor(int s, bool cw){
 }*/
 
 AdjEdgeRes cube::getAdjSideEdge(int s, int i, int j){
-    std::cout<<"[FUNCTION CALL] cube::AdjEdgeRes getAdjSideEdge( "<<s<<" ,"<<i<<" ,"<<j<<" )\n";
+    //std::cout<<"[FUNCTION CALL] cube::AdjEdgeRes getAdjSideEdge( "<<s<<" ,"<<i<<" ,"<<j<<" )\n";
     if(s==front){
         if(i==2 && j==1){
             return AdjEdgeRes(right, sides[right].mat[0][1]);
@@ -425,6 +426,58 @@ AdjEdgeRes cube::getAdjSideEdge(int s, int i, int j){
         if(i==1&& j==2){
             return AdjEdgeRes(up, sides[up].mat[2][1]);
         }
+    }else if(s==left){
+        if(i==2 && j==1){
+            return AdjEdgeRes(front, sides[front].mat[0][1]);
+        }
+        if(i==1 && j==0){
+            return AdjEdgeRes(down, sides[down].mat[0][1]);
+        }
+        if(i==0&& j==1){
+            return AdjEdgeRes(back, sides[back].mat[0][1]);
+        }
+        if(i==1&& j==2){
+            return AdjEdgeRes(up, sides[up].mat[0][1]);
+        }
+    }else if(s==up){
+        if(i==2 && j==1){
+            return AdjEdgeRes(right, sides[right].mat[1][2]);
+        }
+        if(i==1 && j==0){
+            return AdjEdgeRes(front, sides[front].mat[1][2]);
+        }
+        if(i==0&& j==1){
+            return AdjEdgeRes(left, sides[left].mat[1][2]);
+        }
+        if(i==1&& j==2){
+            return AdjEdgeRes(back, sides[back].mat[1][0]);
+        }
+    }else if(s==down){
+        if(i==2 && j==1){
+            return AdjEdgeRes(right, sides[right].mat[1][0]);
+        }
+        if(i==1 && j==0){
+            return AdjEdgeRes(back, sides[back].mat[1][2]);
+        }
+        if(i==0&& j==1){
+            return AdjEdgeRes(left, sides[left].mat[1][0]);
+        }
+        if(i==1&& j==2){
+            return AdjEdgeRes(front, sides[front].mat[1][0]);
+        }
+    }else if(s==back){
+        if(i==2 && j==1){
+            return AdjEdgeRes(right, sides[right].mat[2][1]);
+        }
+        if(i==1 && j==0){
+            return AdjEdgeRes(up, sides[up].mat[1][2]);
+        }
+        if(i==0&& j==1){
+            return AdjEdgeRes(left, sides[left].mat[0][1]);
+        }
+        if(i==1&& j==2){
+            return AdjEdgeRes(down, sides[down].mat[1][0]);
+        }
     }
     std::cout<<"[ERROR] getAdjSideEdge: Invalid adjacent side requested..\n";
     return AdjEdgeRes(-1,'\0');
@@ -441,6 +494,8 @@ bool cube::setRightEdgeToSide(char clrRight, char clrAdj, char clrSide){
     for(i=0;i<4;i++){
         if(sides[right].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]] == clrRight){
             adj=getAdjSideEdge(right, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if(adj.sidei==-1)
+                return false;
             if(adj.adjClr == clrAdj){
                 break;
             }
@@ -451,6 +506,8 @@ bool cube::setRightEdgeToSide(char clrRight, char clrAdj, char clrSide){
             rotateCCW();
             i=(i+1)%4;
             adj=getAdjSideEdge(right, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if(adj.sidei==-1)
+                return false;
         }
         if(j<4){
             done=true;
@@ -460,22 +517,20 @@ bool cube::setRightEdgeToSide(char clrRight, char clrAdj, char clrSide){
 }
 
 void cube::solveWhiteCross(){
-    std::cout<<"[FUNCTION CALL] void cube::solveWhiteCross()\n";
-    setColorToFront('w');
-    int crossColors[4]={right, up, left, down},i;
-    bool doneCrossColor[4]={false};
-    print();
+    //std::cout<<"[FUNCTION CALL] void cube::solveWhiteCross()\n";
+    int crossColors[4]={right, up, left, down},i,doneCnt=0;
+    //print();
     //CASE 1    
     //first time white present in white cross?
     for(i=0;i<4;i++){
-        if(sides[front].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]] == 'w'){
+        if(sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]] == 'w'){
             break;
         }
     }
     if(i<4){
         //yes, white present in white cross
         std::cout<<"[MSG] white present in white cross\n";
-        setColorFrontToRight();
+        setColorToRight('w');
         for(i=0;i<4;i++){
             if(sides[right].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]] == 'w'){
                 break;
@@ -484,48 +539,153 @@ void cube::solveWhiteCross(){
         //align with correct color
         AdjEdgeRes adj=getAdjSideEdge(right, CrossEdgePos[i][0], CrossEdgePos[i][1]);
         setRightEdgeToSide('w', adj.adjClr, adj.adjClr);
-        doneCrossColor[i]=true;
         //std::cout<<"[DEBUG] while loop in solveWhiteCross ended!\n";
         std::cout<<"[MSG] "<<adj.adjClr<<" aligned correctly for white cross\n";
-        print();
+        //print();
     }
 
     //CASE 2
     //white present at white cross?
-    for(i=0;i<4;i++){
-        AdjEdgeRes adj = getAdjSideEdge(getColorSide('w'), CrossEdgePos[i][0], CrossEdgePos[i][1]);
-        if(sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]]=='w'){
-            if(adj.adjClr != sides[adj.sidei].mat[1][1]){
-                //case: white edge not in correct position
-                setColorToRight(sides[adj.sidei].mat[1][1]);
-                setRightEdgeToSide(adj.adjClr, 'w', 'y');
+    while(true){
+        doneCnt=0;
+        //check white side
+        for (i=0; i<4; i++)
+        {
+            AdjEdgeRes adj = getAdjSideEdge(getColorSide('w'), CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if (sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]] == 'w')
+            {
+                if (adj.adjClr == sides[adj.sidei].mat[1][1])
+                {
+                    doneCnt++;
+                    if (doneCnt >= 4)
+                        return;
+                    continue; 
+                }else{
+                    //case: white edge not in correct position
+                    setColorToRight(sides[adj.sidei].mat[1][1]);
+                    setRightEdgeToSide(adj.adjClr, 'w', 'y');
+                    setColorToRight('y');
+                    setRightEdgeToSide('w', adj.adjClr, adj.adjClr);
+                    setColorToRight(adj.adjClr);
+                    setRightEdgeToSide(adj.adjClr, 'w', 'w');
+                }
+            }
+            else if (adj.adjClr == 'w')
+            {
+                char curClr = sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]];
+                char adjSideClr = sides[adj.sidei].mat[1][1];
+                if(curClr==adjSideClr){
+                    //case: white edge not in correct orientation
+                    setColorToRight(curClr);
+                    setColorToFront('w');
+                    //LRDU
+                    char rightClr=curClr, upClr=sides[up].mat[1][1], backClr=sides[back].mat[1][1];
+                    rotateByColor(rightClr, true);
+                    rotateByColor(upClr, false);
+                    rotateByColor(backClr, false);
+                    rotateByColor(upClr, true);
+                    rotateByColor(rightClr, true);
+                    rotateByColor(rightClr, true);
+                }else{
+                    //case: white edge not in correct orientation and position
+                    string tstr = "  ";
+                    tstr[0] = curClr;
+                    tstr[1] = adjSideClr;
+                    bool rotateOnly = true;
+                    if (tstr == "gb" || tstr == "bg" || tstr == "ro" || tstr == "or"){
+                        rotateOnly = false;
+                    }
+                    if (!rotateOnly){
+                        //move edge piece to yellow layer
+                        setColorToRight(adjSideClr);
+                        rotateCCW();
+                        rotateCCW();
+                        setColorToRight('y');
+                        setRightEdgeToSide(curClr, 'w', curClr);
+                        setColorToRight(curClr);
+                        setColorToFront('w');
+                        //LRDU
+                        char upClr = sides[up].mat[1][1];
+                        setRightEdgeToSide('w', curClr, upClr);
+                        char rightClr = sides[right].mat[1][1];
+                        char backClr = sides[back].mat[1][1];
+                        rotateByColor(upClr, true);
+                        rotateByColor(backClr, true);
+                        rotateByColor(upClr, false);
+                        rotateByColor(rightClr, true);
+                        rotateByColor(rightClr, true);
+                    }
+                    else{
+                        setColorToRight(adjSideClr);
+                        setRightEdgeToSide('w', curClr, curClr);
+                        setColorToRight(curClr);
+                        setRightEdgeToSide(curClr, 'w', 'w');
+                    }
+                }
+            }
+        }
+
+        //check yellow layer
+        for(i=0; i<4; i++){
+            int yside=getColorSide('y');
+            AdjEdgeRes adj = getAdjSideEdge(yside, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if (sides[yside].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]] == 'w'){
+                //white in yellow side
                 setColorToRight('y');
                 setRightEdgeToSide('w', adj.adjClr, adj.adjClr);
                 setColorToRight(adj.adjClr);
                 setRightEdgeToSide(adj.adjClr, 'w', 'w');
-            }
-        }else if(adj.adjClr=='w'){
-            //case: white edge not in correct orientation and position
-            char curClr=sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]];
-            setColorToRight(sides[adj.sidei].mat[1][1]);
-            bool done=setRightEdgeToSide('w', curClr, curClr);
-            if(!done){
-                //move edge piece to yello layer
-                rotateCCW();
-                rotateCCW();
+            }else if(adj.adjClr == 'w'){
+                char curClr = sides[yside].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]];
                 setColorToRight('y');
-                setRightEdgeToSide(curClr, 'w', curClr);
-
+                //LRDU
+                char frontClr=sides[front].mat[1][1], upClr=sides[up].mat[1][1];
+                setRightEdgeToSide(curClr, 'w', frontClr);
+                rotateByColor(frontClr, true);
+                rotateByColor(upClr, true);
+                rotateByColor('y', false);
+                rotateByColor(upClr, false);
+                rotateByColor(frontClr, false);
+                //not done yet, will do it in next iteration
             }
         }
-    }
+        //check remaining up and down sides
+        char remainClr[2]={'o', 'r'};
+        for(i=0; i<4; i++){
+            for(int j=0;j<2;j++){
+                int remainClrSide=getColorSide(remainClr[j]);
+                char curClr=sides[remainClrSide].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]];
+                AdjEdgeRes adj=getAdjSideEdge(remainClrSide, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+                if(sides[adj.sidei].mat[1][1]=='b' || sides[adj.sidei].mat[1][1]=='g'){
+                    if(curClr=='w'){
+                        setColorToRight(sides[adj.sidei].mat[1][1]);
+                        setRightEdgeToSide(adj.adjClr, 'w', 'y');
+                        rotateByColor('y', true);
+                        setColorToRight(sides[adj.sidei].mat[1][1]);
+                        setRightEdgeToSide(sides[adj.sidei].mat[1][1], 'w', 'w');
+                    }else if(adj.adjClr=='w' && sides[adj.sidei].mat[1][1]!='w'){
+                        setColorToRight(remainClr[j]);
+                        setRightEdgeToSide(curClr, 'w', 'y');
+                        rotateByColor('y', true);
+                        setColorToRight(remainClr[j]);
+                        setRightEdgeToSide(remainClr[j], 'w', 'w');
+                    }
+                }
+            }
+        }
 
-    for(i=0;i<4;i++){
-        std::cout<<"\ndone edge "<<CrossEdgePos[i][0]<<" , "<<CrossEdgePos[i][1]<<": "<<doneCrossColor[i];
-        AdjEdgeRes adj=getAdjSideEdge(getColorSide('w'), CrossEdgePos[i][0], CrossEdgePos[i][1]);
-        std::cout<<"\nedge : "<<sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]]<<" "<<adj.adjClr<<" side: "<<sides[adj.sidei].mat[1][1]<<"\n";
-    }
+    }//end while(true)
+    
+
+
+
+    // for(i=0;i<4;i++){
+    //     std::cout<<"\ndone edge "<<CrossEdgePos[i][0]<<" , "<<CrossEdgePos[i][1]<<": "<<doneCrossColor[i];
+    //     AdjEdgeRes adj=getAdjSideEdge(getColorSide('w'), CrossEdgePos[i][0], CrossEdgePos[i][1]);
+    //     std::cout<<"\nedge : "<<sides[getColorSide('w')].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]]<<" "<<adj.adjClr<<" side: "<<sides[adj.sidei].mat[1][1]<<"\n";
+    // }
 }
+
 
 
 void setup() {
@@ -539,24 +699,11 @@ void loop() {
 
 int main(){
     cube cb;
-    cb.inputCube()
-    /*while(true){
-        char col;
-        std::cout<<"Color? :";
-        std::cin>>col;
-        if(col=='e')
-            break;
-        if(col=='c'){
-            cb.rotateCW();
-        }else if(col=='a'){
-            cb.rotateCCW();
-        }
-        //cb.setColorToFront(col);
-        cb.print();
-    }*/
+    cb.inputCube();
+    
     cb.solveWhiteCross();
-    //cb.setColorToFront('w');
-    //cb.rotateCCW();
+    cb.setColorToFront('w');
+    
     cb.print();
     int tmp;
     std::cin>>tmp;
