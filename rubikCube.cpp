@@ -6,7 +6,7 @@
 #define GREEN 3
 #define ORANGE 4
 #define RED 5
-//using std::cout;
+using std::cout;
 using std::string;
 //using namespace std;
 /*int OUTCNT = 0;*/
@@ -21,9 +21,21 @@ public:
     AdjEdgeRes(){}
 };
 
+class cornerPiece{
+public:
+    int position[2];
+    int sidei;
+    cornerPiece(){}
+    cornerPiece(int s, int i, int j){
+        sidei=s;
+        position[0]=i;
+        position[1]=j;
+    }
+};
+
 class side{
     public:
-    side *l,*r,*u,*d,*f,*b;
+    //side *l,*r,*u,*d,*f,*b;
     int i;
     char mat[3][3];
     side(){
@@ -36,23 +48,31 @@ class side{
 
 class cube{
     side sides[6];
+    cornerPiece leftSideCorners[4][3],rightSideCorners[4][3];
     int CrossEdgePos[4][2]={{2,1}, {1,0}, {0,1}, {1,2}};
     void rotateSurfaceCW(int side);
     void rotateSurfaceCCW(int side);
     void setColorFrontToRight();
     void setColorRightToFront();
     int getAdjSide(int s, char side);
+    bool matchCorner(cornerPiece c[], char x, char y, char z);
     AdjEdgeRes getAdjSideEdge(int s, int i,int j);
     int getColorSide(char clr);
     void solveWhiteCrossPosOri(AdjEdgeRes adj, int edgei);
     bool setRightEdgeToSide(char clrRight, char clrAdj, char clrSide);
     void rotateByColor(char clr, bool cw);
     void whiteEdgeAtRightWAdj(char clr);
+    bool moveCornerWhiteToYellow();
+    void loadLeftSideCorners();
+    void loadRightSideCorners();
 public:
     int front,back,left,right,up,down;
-    int white, blue, yellow, green, orange, red;
+    string operations[2000];
+    int opCnt;
+    //int white, blue, yellow, green, orange, red;
     void inputCube();
     void print();
+    string getOpStr();
     void flip();
     void spinCW();
     void spinCCW();
@@ -61,10 +81,16 @@ public:
     void rotateCW();
     void rotateCCW();
     void solveWhiteCross();
+    void solveWhiteCorner();
+    void solveSecondLayer();
+    cube(){
+        opCnt=0;
+    }
 };
 
 void cube::inputCube(){
     //std::cout<<"[FUNCTION CALL] void cube::inputCube()\n";
+    operations[opCnt++]="IN";
     std::cout<<"Begin cube input..\n";
     std::string str[6]={"front", "right", "back", "left", "up", "down"};
     for(int s=0;s<6;s++){
@@ -84,6 +110,46 @@ void cube::inputCube(){
     }
     std::cout<<"..indput done!\nPrinting input cube..\n";
     print();
+}
+
+string cube::getOpStr(){
+    //for()
+}
+
+void cube::loadLeftSideCorners(){
+    leftSideCorners[0][0]=cornerPiece(front, 0, 2);
+    leftSideCorners[0][1]=cornerPiece(up, 0, 0);
+    leftSideCorners[0][2]=cornerPiece(left, 2, 2);
+
+    leftSideCorners[1][0]=cornerPiece(front, 0, 0);
+    leftSideCorners[1][1]=cornerPiece(left, 2, 0);
+    leftSideCorners[1][2]=cornerPiece(down, 0, 2);
+
+    leftSideCorners[2][0]=cornerPiece(down, 0, 0);
+    leftSideCorners[2][1]=cornerPiece(back, 0, 2);
+    leftSideCorners[2][2]=cornerPiece(left, 0, 0);
+
+    leftSideCorners[3][0]=cornerPiece(up, 0, 2);
+    leftSideCorners[3][1]=cornerPiece(back, 0, 0);
+    leftSideCorners[3][2]=cornerPiece(left, 0, 2);
+}
+
+void cube::loadRightSideCorners(){
+    rightSideCorners[0][0]=cornerPiece(front, 2, 2);
+    rightSideCorners[0][1]=cornerPiece(up, 2, 0);
+    rightSideCorners[0][2]=cornerPiece(right, 0, 2);
+
+    rightSideCorners[1][0]=cornerPiece(front, 2, 0);
+    rightSideCorners[1][1]=cornerPiece(right, 0, 0);
+    rightSideCorners[1][2]=cornerPiece(down, 2, 2);
+
+    rightSideCorners[2][0]=cornerPiece(down, 2, 0);
+    rightSideCorners[2][1]=cornerPiece(back, 2, 2);
+    rightSideCorners[2][2]=cornerPiece(right, 2, 0);
+
+    rightSideCorners[3][0]=cornerPiece(up, 2, 2);
+    rightSideCorners[3][1]=cornerPiece(back, 2, 0);
+    rightSideCorners[3][2]=cornerPiece(right, 2, 2);
 }
 
 void cube::print(){
@@ -108,6 +174,7 @@ void cube::print(){
 
 void cube::flip(){
     std::cout<<"[FUNCTION CALL] void cube::flip()\n";
+    operations[opCnt++]="FL";
     //flip whole cube
     int tmp=left;
     left=up;
@@ -120,6 +187,7 @@ void cube::flip(){
     rotateSurfaceCCW(up);
     rotateSurfaceCCW(right);
     rotateSurfaceCCW(down);
+    
 }
 
 void cube::rotateSurfaceCW(int side){
@@ -164,6 +232,7 @@ void cube::rotateSurfaceCCW(int side){
 
 void cube::spinCW(){
     std::cout<<"[FUNCTION CALL] void cube::spinCW()\n";
+    operations[opCnt++]="SPC";
     //spin whole cube clockwise
     int tmp=front;
     front=up;
@@ -178,6 +247,7 @@ void cube::spinCW(){
 
 void cube::spinCCW(){
     std::cout<<"[FUNCTION CALL] void cube::spinCCW()\n";
+    operations[opCnt++]="SPCC";
     //spin whole cube counter clockwise
     int saved[3],i,tmp=front;
     front=down;
@@ -263,6 +333,7 @@ void cube::setColorToRight(char clr){
 
 void cube::rotateCCW(){
     std::cout<<"[FUNCTION CALL] void cube::rotateCCW()\n";
+    operations[opCnt++]="RCC";
     short int i;
     //save up
     char upSaved[3];
@@ -286,6 +357,7 @@ void cube::rotateCCW(){
 
 void cube::rotateCW(){
     std::cout<<"[FUNCTION CALL] void cube::rotateCW()\n";
+    operations[opCnt++]="RC";
     short int i;
     //save up
     char upSaved[3];
@@ -686,7 +758,180 @@ void cube::solveWhiteCross(){
     // }
 }
 
+bool cube::moveCornerWhiteToYellow(){
+    int doneCnt=0;
+    setColorToRight('y');
+    char frontClr=sides[front].mat[1][1], upClr=sides[up].mat[1][1], backClr=sides[back].mat[1][1], downClr=sides[down].mat[1][1];
+    loadLeftSideCorners();
+    //check white present int left white layer?
+    int i;
+    for(i=0; i<4; i++){
+        bool match=false,whitePresent=false;
+        for(int j=0;j<3;j++){
+            cornerPiece c=leftSideCorners[i][j];
+            if(sides[c.sidei].mat[1][1]==sides[c.sidei].mat[c.position[0]][c.position[1]]){
+                match=true;
+            }else{
+                match=false;
+                if(sides[c.sidei].mat[c.position[0]][c.position[1]]=='w'){
+                    whitePresent=true;
+                    break;
+                }
+            }
+        }
+        if(match){
+            doneCnt++;
+            if(doneCnt>=4)
+                return true;
+            continue;
+        }else{
+            if(whitePresent){
+                //if not matched i.e not correctly placed corner and white present in corner, then move that to yellow layer
+                //LRDU
+                if(i==0){
+                    rotateByColor(upClr, true);
+                    rotateByColor('y', false);
+                    rotateByColor(upClr, false);
+                }else if(i==1){
+                    rotateByColor(downClr, false);
+                    rotateByColor('y', false);
+                    rotateByColor(downClr, true);
+                }else if(i==2){
+                    rotateByColor(downClr, true);
+                    rotateByColor('y', false);
+                    rotateByColor(downClr, false);
+                }else if(i==3){
+                    rotateByColor(upClr, false);
+                    rotateByColor('y', false);
+                    rotateByColor(upClr, true);
+                }
+                break;
+            }
+        }
+    }
+    return false;
+}
 
+bool cube::matchCorner(cornerPiece c[], char x, char y, char z){
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            for(int k=0;k<3;k++){
+                if(i!=j && j!=k && i!=k){
+                    if(sides[c[i].sidei].mat[c[i].position[0]][c[i].position[1]]==x)
+                        if(sides[c[j].sidei].mat[c[j].position[0]][c[j].position[1]]==y)
+                            if(sides[c[k].sidei].mat[c[k].position[0]][c[k].position[1]]==z)
+                                return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void cube::solveWhiteCorner(){
+    bool done=false;
+    while(!done){
+        std::cout<<"\n[2]Infinite loop..\n";
+        //place white corner piece correctly present in yellow layer
+        setColorToRight('y');
+        int i;
+        bool found=false;
+        loadRightSideCorners();
+        for(i=0;i<4;i++){
+            //cornerPiece *c=rightSideCorners[i];
+            cornerPiece c[3];
+            for(int j=0;j<3;j++){
+                c[j]=rightSideCorners[i][j];
+                if(sides[c[j].sidei].mat[c[j].position[0]][c[j].position[1]]=='w'){
+                    found=true;
+                    break;
+                }
+            }
+            // if(matchCorner(c, sides[front].mat[1][1], sides[up].mat[1][1], 'w')){
+            //     found=true;
+            //     break;
+            // }
+            if(found){
+                break;
+            }
+        }
+        if(found){ 
+            //set corner piece correspond to correct colors
+            for(;;i++){
+                i=(i%4);
+                std::cout<<"\n[1]Infinite loop..\n";
+                cornerPiece c[3];
+                int k,l;
+                char pClr[2], sClr[2];
+                for(int j=0,k=0,l=0;j<3;j++){
+                    c[j]=rightSideCorners[i][j];
+                    if(sides[c[j].sidei].mat[c[j].position[0]][c[j].position[1]]!='w'){
+                        pClr[k++]=sides[c[j].sidei].mat[c[j].position[0]][c[j].position[1]];
+                    }
+                    if(sides[c[j].sidei].mat[1][1]!='y'){
+                        sClr[l++]=sides[c[j].sidei].mat[1][1];
+                    }
+                }
+                if((pClr[0]==sClr[0] && pClr[1]==sClr[1]) || (pClr[0]==sClr[1] && pClr[1]==sClr[0])){
+                    break;
+                }else{
+                    rotateCW();
+                }
+            }
+            //set corner piece to front-right-up corner
+            while(i--){
+                spinCCW();
+            }
+            char frontClr=sides[front].mat[1][1], upClr=sides[up].mat[1][1];
+
+            if(sides[front].mat[2][2]=='w'){
+                //front rule
+                rotateByColor(frontClr, false);
+                rotateByColor('y', false);
+                rotateByColor(frontClr, true);
+            }else if(sides[up].mat[2][0]=='w'){
+                //right rule [R' D' R]
+                rotateByColor(upClr, true);
+                rotateByColor('y', true);
+                rotateByColor(upClr, false);
+            }else if(sides[right].mat[0][2]=='w'){
+                //down rule [R' D2 R D R' D' R]
+                rotateByColor(upClr, true);
+                rotateByColor('y', false);
+                rotateByColor('y', false);
+                rotateByColor(upClr, false);
+                rotateByColor('y', false);
+                rotateByColor(upClr, true);
+                rotateByColor('y', true);
+                rotateByColor(upClr, false);
+            }
+
+        }else{
+            //no white corner is present in yellow layer, so check if done or bring from white layer
+            done=moveCornerWhiteToYellow();
+        }
+    }
+}
+
+void cube::solveSecondLayer(){
+    bool done=false;
+    while(!done){
+        int ySide=getColorSide('y');
+        int i;
+        for(i=0;i<4;i++){
+            AdjEdgeRes adj=getAdjSideEdge(ySide, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if(sides[ySide].mat[ CrossEdgePos[i][0]][ CrossEdgePos[i][1]]!='y' || adj.adjClr!='y' ){
+                break;  
+            }
+        }
+        if(i<4){
+            //found second layer edge piece in yellow layer
+
+        }else{
+            //done or check second layer for wrong edge piece
+        }
+    }
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -702,9 +947,11 @@ int main(){
     cb.inputCube();
     
     cb.solveWhiteCross();
+    cb.solveWhiteCorner();
     cb.setColorToFront('w');
     
     cb.print();
+    cout<<"Total operations: "<<cb.opCnt;
     int tmp;
     std::cin>>tmp;
 }
