@@ -48,6 +48,7 @@ class side{
 
 class cube{
     side sides[6];
+    int front,back,left,right,up,down;
     cornerPiece leftSideCorners[4][3],rightSideCorners[4][3];
     int CrossEdgePos[4][2]={{2,1}, {1,0}, {0,1}, {1,2}};
     void rotateSurfaceCW(int side);
@@ -65,8 +66,9 @@ class cube{
     bool moveCornerWhiteToYellow();
     void loadLeftSideCorners();
     void loadRightSideCorners();
+    bool secondLayerLR(char, char);
+    void secondLayerLeftRight(char, char, bool);
 public:
-    int front,back,left,right,up,down;
     string operations[2000];
     int opCnt;
     //int white, blue, yellow, green, orange, red;
@@ -913,22 +915,77 @@ void cube::solveWhiteCorner(){
     }
 }
 
+bool cube::secondLayerLR(char clr, char sideClr){
+    if(clr=='r'){
+        if(sideClr=='b') return false;
+        if(sideClr=='g') return true;
+    }else if(clr=='b'){
+        if(sideClr=='o') return false;
+        if(sideClr=='r') return true;
+    }else if(clr=='g'){
+        if(sideClr=='r') return false;
+        if(sideClr=='o') return true;
+    }else if(clr=='o'){
+        if(sideClr=='g') return false;
+        if(sideClr=='b') return true;
+    }
+    cout<<"\n[ERROR] Invalid left or right side requested!\n";
+    return true;
+}
+
+void cube::secondLayerLeftRight(char curClr, char adjClr, bool lr){
+    //LRDU
+    rotateByColor('y', !lr);
+    rotateByColor(curClr, !lr);
+    rotateByColor('y', lr);
+    rotateByColor(curClr, lr);
+    rotateByColor('y', lr);
+    rotateByColor(adjClr, lr);
+    rotateByColor('y', !lr);
+    rotateByColor(adjClr, !lr);
+}
+
 void cube::solveSecondLayer(){
     bool done=false;
     while(!done){
+        std::cout<<"\n[3]Infinite loop..\n";
         int ySide=getColorSide('y');
         int i;
+        AdjEdgeRes adj;
+        char curClr;
         for(i=0;i<4;i++){
-            AdjEdgeRes adj=getAdjSideEdge(ySide, CrossEdgePos[i][0], CrossEdgePos[i][1]);
-            if(sides[ySide].mat[ CrossEdgePos[i][0]][ CrossEdgePos[i][1]]!='y' || adj.adjClr!='y' ){
+            adj=getAdjSideEdge(ySide, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            curClr=sides[ySide].mat[ CrossEdgePos[i][0]][ CrossEdgePos[i][1]];
+            if(curClr!='y' && adj.adjClr!='y' ){
                 break;  
             }
         }
         if(i<4){
             //found second layer edge piece in yellow layer
-
+            setColorToRight('y');
+            setRightEdgeToSide(curClr, adj.adjClr, adj.adjClr);
+            bool lr=secondLayerLR(adj.adjClr, curClr);
+            //true: right, false: left
+            secondLayerLeftRight(curClr, adj.adjClr, lr);
+            continue;
         }else{
             //done or check second layer for wrong edge piece
+            setColorToRight('w');
+            char layerClrs[4]={'o', 'b', 'r', 'g'};
+            for(int c=0, doneCnt=0;c<4;c++){
+                int s=getColorSide(layerClrs[c]);
+                adj=getAdjSideEdge(s, 1, 2);
+                if(layerClrs[c]==sides[s].mat[1][2] && sides[adj.sidei].mat[1][1]==adj.adjClr){
+                    doneCnt++;
+                    if(doneCnt>=4){
+                        done=true;
+                        break;
+                    }
+                }else{
+                    secondLayerLeftRight(sides[adj.sidei].mat[1][1], layerClrs[c], true);
+                    break;
+                }
+            }
         }
     }
 }
@@ -949,7 +1006,9 @@ int main(){
     cb.solveWhiteCross();
     cb.solveWhiteCorner();
     cb.setColorToFront('w');
-    
+    cb.print();
+
+    cb.solveSecondLayer();
     cb.print();
     cout<<"Total operations: "<<cb.opCnt;
     int tmp;
