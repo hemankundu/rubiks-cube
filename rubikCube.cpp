@@ -85,6 +85,7 @@ public:
     void solveWhiteCross();
     void solveWhiteCorner();
     void solveSecondLayer();
+    void solveYellowCross();
     cube(){
         opCnt=0;
     }
@@ -990,6 +991,68 @@ void cube::solveSecondLayer(){
     }
 }
 
+void cube::solveYellowCross(){
+    bool done=false;
+    while(!done){
+        //check yellow cross formation
+        int i,lShapePos,doneCnt,pos;
+        char ch,chn;
+        int ySide=getColorSide('y');
+        done=true;
+        bool lShape=false;
+        for(i=0, doneCnt=0;i<4;i++){
+            ch=sides[ySide].mat[CrossEdgePos[i][0]][CrossEdgePos[i][1]];
+            chn=sides[ySide].mat[CrossEdgePos[(i+1)%4][0]][CrossEdgePos[(i+1)%4][1]];
+            if(ch!='y'){
+                done=false;
+                pos=i;
+            }else{
+                doneCnt++;
+                if(doneCnt>=4){
+                    done=true;
+                    break;
+                }
+                continue;
+                if(chn=='y'){
+                    lShape=true;
+                    lShapePos=i;
+                }
+            }
+        }
+        if(!done){
+            if(lShape){
+                //L shape
+                //LRDU
+                int frontIn=getAdjSideEdge(ySide, CrossEdgePos[(lShapePos+2)%4][0], CrossEdgePos[(lShapePos+2)%4][1]).sidei;
+                int rightIn=getAdjSideEdge(ySide, CrossEdgePos[(lShapePos+1)%4][0], CrossEdgePos[(lShapePos+1)%4][1]).sidei;
+                char frontCLr=sides[frontIn].mat[1][1], rightClr=sides[rightIn].mat[1][1];
+                //F U R U' R' F'
+                rotateByColor(frontCLr, false);
+                rotateByColor('y', false);
+                rotateByColor(rightClr, false);
+                rotateByColor('y', true);
+                rotateByColor(rightClr, true);
+                rotateByColor(frontCLr, true);
+            }else{
+                //Normal
+                //F R U R' U' F'
+                //LRDU
+                int frontIn=getAdjSideEdge(ySide, CrossEdgePos[pos][0], CrossEdgePos[pos][1]).sidei;
+                int rightIn=getAdjSideEdge(ySide, CrossEdgePos[(pos==0)?4:pos-1][0], CrossEdgePos[(pos==0)?4:pos-1][1]).sidei;
+                char frontCLr=sides[frontIn].mat[1][1], rightClr=sides[rightIn].mat[1][1];
+                rotateByColor(frontCLr, false);
+                rotateByColor(rightClr, false);
+                rotateByColor('y', false);
+                rotateByColor(rightClr, true);
+                rotateByColor('y', true);
+                rotateByColor(frontCLr, true);                
+            }
+        }
+        
+    }
+    
+}
+
 void setup() {
   // put your setup code here, to run once:
 
@@ -1005,10 +1068,8 @@ int main(){
     
     cb.solveWhiteCross();
     cb.solveWhiteCorner();
-    cb.setColorToFront('w');
-    cb.print();
-
     cb.solveSecondLayer();
+    cb.solveYellowCross();
     cb.print();
     cout<<"Total operations: "<<cb.opCnt;
     int tmp;
