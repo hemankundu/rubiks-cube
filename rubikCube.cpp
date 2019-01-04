@@ -68,9 +68,11 @@ class cube{
     void loadRightSideCorners();
     bool secondLayerLR(char, char);
     void secondLayerLeftRight(char, char, bool);
+    void solveYellowEdgePosition();
+    void solveYellowEdgePositionHelper(char);
 public:
     string operations[2000];
-    int opCnt;
+    int opCnt, opStrCnt;
     //int white, blue, yellow, green, orange, red;
     void inputCube();
     void print();
@@ -86,8 +88,10 @@ public:
     void solveWhiteCorner();
     void solveSecondLayer();
     void solveYellowCross();
+    //void solveYellowEdgePosition();
     cube(){
         opCnt=0;
+        opStrCnt=0;
     }
 };
 
@@ -116,7 +120,36 @@ void cube::inputCube(){
 }
 
 string cube::getOpStr(){
-    //for()
+    string cr,nx,op;
+    int cnt=1;
+    operations[opCnt++]="nop";
+    for(int i=0;i<opCnt-1;i++){
+        cr=operations[i];
+        nx=operations[i+1];
+        if(cr==nx){
+            cnt++;
+        }else{
+            if(cnt>2){
+                if(cr=="RCC"){
+                    cr="RC";    
+                }else if(cr=="RC"){
+                    cr="RCC";
+                }else if(cr=="SPCC"){
+                    cr="SPC";
+                }else if(cr=="SPC"){
+                    cr="SPCC";
+                }
+                cnt=1;
+            }
+            op+=(cr+"|");
+            op+=(((cnt%4)+48));
+            op+="\n";
+            cnt=1;
+            opStrCnt++;
+        }
+    }
+    opCnt--;
+    return op;
 }
 
 void cube::loadLeftSideCorners(){
@@ -949,7 +982,7 @@ void cube::secondLayerLeftRight(char curClr, char adjClr, bool lr){
 void cube::solveSecondLayer(){
     bool done=false;
     while(!done){
-        std::cout<<"\n[3]Infinite loop..\n";
+        std::cout<<"\n[solveSecondLayer] Infinite loop..\n";
         int ySide=getColorSide('y');
         int i;
         AdjEdgeRes adj;
@@ -991,9 +1024,89 @@ void cube::solveSecondLayer(){
     }
 }
 
+void cube::solveYellowEdgePositionHelper(char rightClr){
+    rotateByColor(rightClr, false);
+    rotateByColor('y', false);
+    rotateByColor(rightClr, true);
+    rotateByColor('y', false);
+    rotateByColor(rightClr, false);
+    rotateByColor('y', false);
+    rotateByColor('y', false);
+    rotateByColor(rightClr, true);
+    rotateByColor('y', false);
+}
+
+void cube::solveYellowEdgePosition(){
+    bool done=false;
+    //initial optimal adjustment
+    setColorToRight('y');
+    AdjEdgeRes adj;
+    int k,max=0,maxCnt=0,matchCnt;
+    for(k=0;k<4;k++){
+        matchCnt=0;
+        for(int i=0;i<4;i++){
+            adj=getAdjSideEdge(right, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if(sides[adj.sidei].mat[1][1] == adj.adjClr){
+                matchCnt++;
+            }
+        }
+        if(matchCnt==4){
+            done=true;
+            break;
+        }
+        if(matchCnt>maxCnt){
+            maxCnt=matchCnt;
+            max=k;
+        }
+        rotateCCW();
+    }
+    if(!done){
+        while(max--){
+            rotateCCW();
+        }
+    }
+
+    while(!done){
+        std::cout<<"\n[solveYellowEdgePosition] Infinite loop..\n";
+        int i,ySide=getColorSide('y');
+        for(i=0;i<4;i++){
+            adj=getAdjSideEdge(ySide, CrossEdgePos[i][0], CrossEdgePos[i][1]);
+            if(sides[adj.sidei].mat[1][1] != adj.adjClr){
+                break;
+            }
+        }
+        if(i<4){
+            //not done yet
+            AdjEdgeRes adjFw;
+            adjFw=getAdjSideEdge(ySide, CrossEdgePos[(i+1)%4][0], CrossEdgePos[(i+1)%4][1]);
+            if(sides[adjFw.sidei].mat[1][1]!=adjFw.adjClr){
+                //L type swap
+                //R U R' U R U2 R' U
+                AdjEdgeRes adjRight=getAdjSideEdge(ySide, CrossEdgePos[(i+3)%4][0], CrossEdgePos[(i+3)%4][1]);
+                //LRDU
+                solveYellowEdgePositionHelper(sides[adjRight.sidei].mat[1][1]);
+            }else{
+                adjFw=getAdjSideEdge(ySide, CrossEdgePos[(i+2)%4][0], CrossEdgePos[(i+2)%4][1]);
+                if(sides[adjFw.sidei].mat[1][1]!=adjFw.adjClr){
+                    // - type swap
+                    //U (R U R' U R U2 R' U) y2 (R U R' U R U2 R' U)
+                    //LRDU
+                    rotateByColor('y', false);
+                    solveYellowEdgePositionHelper(sides[adjFw.sidei].mat[1][1]);
+                    solveYellowEdgePositionHelper(sides[adj.sidei].mat[1][1]);
+                }
+            }
+        }else{
+            done=true;
+            break;
+        }
+    }
+}
+
 void cube::solveYellowCross(){
     bool done=false;
     while(!done){
+        std::cout<<"\n[solveYellowCross] Infinite loop..\n";
         //check yellow cross formation
         int i,lShapePos,doneCnt,pos;
         char ch,chn;
@@ -1050,7 +1163,7 @@ void cube::solveYellowCross(){
         }
         
     }
-    
+    solveYellowEdgePosition();
 }
 
 void setup() {
@@ -1070,8 +1183,12 @@ int main(){
     cb.solveWhiteCorner();
     cb.solveSecondLayer();
     cb.solveYellowCross();
+
     cb.print();
-    cout<<"Total operations: "<<cb.opCnt;
-    int tmp;
-    std::cin>>tmp;
+    
+    cout<<cb.getOpStr()<<"\n";
+    cout<<"Actual Total operations: "<<cb.opCnt<<"\n";
+    cout<<"Optimized Total operations: "<<cb.opStrCnt<<"\n";
+    // int tmp;
+    // std::cin>>tmp;
 }
