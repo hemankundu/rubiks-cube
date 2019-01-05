@@ -89,6 +89,8 @@ public:
     void solveSecondLayer();
     void solveYellowCross();
     //void solveYellowEdgePosition();
+    void positionYellowCorner();
+    void orientYellowCorner();
     cube(){
         opCnt=0;
         opStrCnt=0;
@@ -129,17 +131,20 @@ string cube::getOpStr(){
         if(cr==nx){
             cnt++;
         }else{
-            if(cnt>2){
+            if(cnt==3){
                 if(cr=="RCC"){
                     cr="RC";    
+                    cnt=1;
                 }else if(cr=="RC"){
                     cr="RCC";
+                    cnt=1;
                 }else if(cr=="SPCC"){
                     cr="SPC";
+                    cnt=1;
                 }else if(cr=="SPC"){
                     cr="SPCC";
+                    cnt=1;
                 }
-                cnt=1;
             }
             op+=(cr+"|");
             op+=(((cnt%4)+48));
@@ -1166,6 +1171,184 @@ void cube::solveYellowCross(){
     solveYellowEdgePosition();
 }
 
+void cube::positionYellowCorner(){
+    bool done=false;
+    while(!done){
+        int i,matchCnt=0,matchInd=0;
+        setColorToRight('y');
+        loadRightSideCorners();
+        char sideClrs[3]; 
+        for(i=0;i<4;i++){
+            cornerPiece *c=rightSideCorners[i];
+            for(int j=0;j<3;j++){
+                sideClrs[j]=sides[c[j].sidei].mat[1][1];
+            }
+            if(matchCorner(c, sideClrs[0], sideClrs[1], sideClrs[2])){
+                matchCnt++;
+                matchInd=i;
+            }
+        }
+        if(matchCnt<4){
+            //atleast one corner is positioned correctly
+            int rcnt=matchInd;
+            //set that corner piece to 0th corner
+            while(rcnt--){
+                spinCCW();
+            }
+            char rightClr=sides[front].mat[1][1], leftClr=sides[back].mat[1][1];
+            //U R U' L' U R' U' L
+            //LRDU
+            rotateByColor('y', false);
+            rotateByColor(rightClr, false);
+            rotateByColor('y', true);
+            rotateByColor(leftClr, true);
+            rotateByColor('y', false);
+            rotateByColor(rightClr, true);
+            rotateByColor('y', true);
+            rotateByColor(leftClr, false);
+        }else{
+            done=true;
+            break;
+        }  
+    }
+}
+
+void cube::orientYellowCorner(){
+    bool done=false;
+    string correctSeq[4]={"br", "rg", "go", "ob"};
+    setColorToRight('y');
+    loadRightSideCorners();
+    int i;
+    bool match;
+    for(i=0;i<4;i++){
+        cornerPiece *c=rightSideCorners[i];
+        match=true;
+        for(int j=0;j<3;j++){
+            if(sides[c[j].sidei].mat[c[j].position[0]][c[j].position[0]]!=sides[c[j].sidei].mat[1][1]){
+                match=false;
+                break;
+            }
+        }
+        if(!match){
+            break;
+        }
+    }
+    int rcnt=i;
+    //set mismatched corner to correct position
+    while(rcnt--){
+        spinCCW();
+    }
+    char rightClr=sides[front].mat[1][1];
+    rightSideCorners[0];
+    while(!done){
+        cout<<"\n[orientYellowCorner] Infinite loop..\n";
+        bool oriented=false;
+        char curCorner[3];
+        loadRightSideCorners();
+        for(i=0;i<3;i++){
+            curCorner[i]=sides[rightSideCorners[0][i].sidei].mat[rightSideCorners[0][i].position[0]][rightSideCorners[0][i].position[1]];
+        }
+        int k,l;
+        while(!oriented){
+            // R' D' R D
+            //LRDU
+            rotateByColor(rightClr, true);
+            rotateByColor('w', true);
+            rotateByColor(rightClr, false);
+            rotateByColor('w', false);
+            setColorToRight('y');
+            loadRightSideCorners();
+            for(k=0;k<4;k++){
+                bool found=false;
+                cornerPiece *c=rightSideCorners[k];
+                if(matchCorner(c, curCorner[0], curCorner[1], curCorner[2])){
+                    //found target corner piece, check orientation
+                    found=true;
+                    for(l=0;l<3;l++){
+                        if(sides[c[l].sidei].mat[1][1]=='y'){
+                            oriented=(sides[c[l].sidei].mat[c[l].position[0]][c[l].position[1]]=='y');
+                            break;
+                        }
+                    }
+                }
+                if(found){
+                    break;
+                }
+            }   
+        }
+        while(k--){
+            spinCCW();
+        }
+        //turn for next piece
+        setColorToRight('y');
+        loadRightSideCorners();
+        //check if done
+        bool allYellow=true; //allyellow at yellow layer coreners?
+        string cornerSeq[4]={""};
+        for(i=0;i<4;i++){
+            cornerPiece *c=rightSideCorners[i];
+            for(l=0;l<3;l++){
+                if(sides[c[l].sidei].mat[1][1]=='y'){
+                    if(sides[c[l].sidei].mat[c[l].position[0]][c[l].position[1]]!='y'){
+                        allYellow=false;
+                        break;
+                    } 
+                }else{
+                    if(sides[c[l].sidei].mat[c[l].position[0]][c[l].position[1]]=='y'){
+                        allYellow=false;
+                        break;
+                    }else{
+                        cornerSeq[i]+=sides[c[l].sidei].mat[c[l].position[0]][c[l].position[1]];
+                    }
+                }
+            }
+            if(!allYellow){
+                break;
+            }
+        }
+        if(allYellow){
+            int j;
+            //search in corrct seq
+            for(j=0;j<4;j++){
+                if((correctSeq[j][0]==cornerSeq[0][0] && correctSeq[j][1]==cornerSeq[0][1])||(correctSeq[j][0]==cornerSeq[0][1] && correctSeq[j][1]==cornerSeq[0][0])){
+                    break;
+                }
+            }
+            //if not present
+            if(j>=4){
+                k=0;
+            }else{
+                //if present, check if corner seq correct 
+                for(k=1;k<4;k++){
+                    int l=(j+k)%4;
+                    if(!(correctSeq[l][0]==cornerSeq[k][0] && correctSeq[l][1]==cornerSeq[k][1]) && !(correctSeq[l][0]==cornerSeq[k][1] && correctSeq[l][1]==cornerSeq[k][0])){
+                        break;
+                    }
+                }
+            }
+            if(k>=4){
+                //if whole seq matched
+                for(j=0;j<4;j++){
+                    cornerPiece *c=rightSideCorners[0];
+                    if(matchCorner(c, sides[c[0].sidei].mat[1][1], sides[c[1].sidei].mat[1][1], sides[c[2].sidei].mat[1][1])){
+                        break;
+                    }
+                    rotateCCW();
+                    loadRightSideCorners();
+                }
+                done=true;
+                break;
+            }else{
+                //wrong corner piece is at k
+                i=k;
+            }
+        }
+        while(i--){
+            rotateCCW();
+        }
+    }
+}
+
 void setup() {
   // put your setup code here, to run once:
 
@@ -1183,10 +1366,13 @@ int main(){
     cb.solveWhiteCorner();
     cb.solveSecondLayer();
     cb.solveYellowCross();
-
-    cb.print();
+    cb.positionYellowCorner();
+    cb.orientYellowCorner();
+    
     
     cout<<cb.getOpStr()<<"\n";
+    
+    cb.print();
     cout<<"Actual Total operations: "<<cb.opCnt<<"\n";
     cout<<"Optimized Total operations: "<<cb.opStrCnt<<"\n";
     // int tmp;
