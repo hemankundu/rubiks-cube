@@ -1,0 +1,205 @@
+
+w w w
+w w w
+w w w
+g g g
+g g g
+g g g
+y y y
+y y y
+y y y
+b b b
+b b b
+b b b
+r r r
+r r r
+r r r
+o o o
+o o o
+o o o
+
+white cross test case [PASS]
+1. kc cube [PASS]
+
+gry
+bwb
+bgo
+
+rob
+wgy
+ryg
+
+bbg
+gyo
+rby
+
+yoo
+gbo
+wwr
+
+bww
+rry
+yrw
+
+oro
+yow
+ggw
+
+2. small cub [PASS]
+
+wyy
+gwg
+wwy
+
+bgg
+obw
+ogw
+
+byy
+oyw
+brw
+
+gby
+wgb
+grr
+
+bro
+yoy
+obo
+
+ror
+rro
+gbr
+
+white corner testcase[PASS]
+
+bwr
+wwb
+owr
+
+ggw
+bgw
+gyb
+
+gow
+oyr
+rgo
+
+oby
+gbo
+ybw
+
+bgr
+yry
+gry
+
+bro
+yoo
+wry
+
+---------------
+
+ggy
+bwo
+ryw
+
+grr
+gbr
+gwo
+
+rgb
+ryo
+gbr
+
+wwy
+bgb
+oob
+
+orb
+yow
+bgw
+
+oyy
+wro
+yyw
+
+
+
+solveYellowEdgePosition testcase []
+
+www
+www
+www
+
+ggg
+ggg
+boo
+
+gyy
+yyy
+yyo
+
+rby
+bbb
+bbb
+
+rrr
+rrr
+rrg
+
+boo
+goo
+yoo
+
+-----------------------------
+
+www
+www
+www
+
+ggg
+ggg
+ogg
+
+yyy
+yyy
+yyy
+
+rbg
+bbb
+bbb
+
+rro
+rrr
+rrr
+
+boo
+ooo
+boo
+
+orientyellowcorner testcase []
+
+www
+www
+www
+
+ggg
+ggg
+ogy
+
+byy
+yyy
+ryg
+
+bbr
+bbb
+bbb
+
+rry
+rrr
+rrg
+
+ooo
+ooo
+yoo
+
