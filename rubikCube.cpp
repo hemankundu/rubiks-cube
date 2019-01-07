@@ -1,5 +1,7 @@
 #include<iostream>
 #include<string>
+#include<stdio.h>
+#include "cameraInput.cpp"
 #define WHITE 0
 #define BLUE 1
 #define YELLOW 2
@@ -10,6 +12,8 @@ using std::cout;
 using std::string;
 //using namespace std;
 /*int OUTCNT = 0;*/
+
+//const char outFileName[]="cube-color.txt";
 class AdjEdgeRes{
 public:
     int sidei;
@@ -97,16 +101,42 @@ public:
     }
 };
 
+
+
 void cube::inputCube(){
     //std::cout<<"[FUNCTION CALL] void cube::inputCube()\n";
+    while(true){
+        cout<<"Do you want to use existing file for input?\n[y/n]: ";
+        char ch=getchar();
+        if(ch=='n'||ch=='N'){
+            if(readCamera()){
+                cout<<"Successfully read cube from camera.\n";
+            }else{
+                cout<<"[ERROR] Camera input error\n";
+                exit(1);
+            }
+            break;
+        }else if(ch=='y' || ch=='Y'){
+            break;
+        }
+    }
+    FILE *infp=fopen(outFileName, "r");
+    if(infp==NULL){
+        cout<<"[ERROR] Cube input file ("<<outFileName<<") could not be found.\n";
+        exit(1);
+    }
     operations[opCnt++]="IN";
     std::cout<<"Begin cube input..\n";
+    char ch;
     std::string str[6]={"front", "right", "back", "left", "up", "down"};
     for(int s=0;s<6;s++){
         std::cout<<"Enter for "<<str[s]<<" side:";
         for(int i=0;i<3;i++){
             for(int j=0;j<3;j++){
-                std::cin>>sides[s].mat[i][j];
+                do{
+                    fscanf(infp, "%c", &ch);
+                }while(ch=='\n' || ch==' ');
+                sides[s].mat[i][j]=ch;
             }
         }
         sides[s].i=s;
@@ -1085,7 +1115,7 @@ void cube::solveYellowEdgePosition(){
             AdjEdgeRes adjFw;
             adjFw=getAdjSideEdge(ySide, CrossEdgePos[(i+1)%4][0], CrossEdgePos[(i+1)%4][1]);
             if(sides[adjFw.sidei].mat[1][1]!=adjFw.adjClr){
-                //L type swap
+                //L type swap forward
                 //R U R' U R U2 R' U
                 AdjEdgeRes adjRight=getAdjSideEdge(ySide, CrossEdgePos[(i+3)%4][0], CrossEdgePos[(i+3)%4][1]);
                 //LRDU
@@ -1099,6 +1129,15 @@ void cube::solveYellowEdgePosition(){
                     rotateByColor('y', false);
                     solveYellowEdgePositionHelper(sides[adjFw.sidei].mat[1][1]);
                     solveYellowEdgePositionHelper(sides[adj.sidei].mat[1][1]);
+                }else{
+                    adjFw=getAdjSideEdge(ySide, CrossEdgePos[(i+3)%4][0], CrossEdgePos[(i+3)%4][1]);
+                    if(sides[adjFw.sidei].mat[1][1]!=adjFw.adjClr){
+                        //L type swap backward
+                        //R U R' U R U2 R' U
+                        AdjEdgeRes adjRight=getAdjSideEdge(ySide, CrossEdgePos[(i+2)%4][0], CrossEdgePos[(i+2)%4][1]);
+                        //LRDU
+                        solveYellowEdgePositionHelper(sides[adjRight.sidei].mat[1][1]);
+                    }
                 }
             }
         }else{
@@ -1168,6 +1207,7 @@ void cube::solveYellowCross(){
         }
         
     }
+    print();
     solveYellowEdgePosition();
 }
 
