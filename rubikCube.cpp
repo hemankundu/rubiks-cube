@@ -1,7 +1,10 @@
 #include<iostream>
 #include<string>
 #include<stdio.h>
+#include<vector>
 #include "cameraInput.cpp"
+//#include "serial.cpp"
+
 #define WHITE 0
 #define BLUE 1
 #define YELLOW 2
@@ -76,11 +79,12 @@ class cube{
     void solveYellowEdgePositionHelper(char);
 public:
     string operations[2000];
+    char op[2000][7]={'\0'};
     int opCnt, opStrCnt;
     //int white, blue, yellow, green, orange, red;
     void inputCube();
     void print();
-    string getOpStr();
+    void getOpStr();
     void flip();
     void spinCW();
     void spinCCW();
@@ -105,12 +109,16 @@ public:
 
 void cube::inputCube(){
     //std::cout<<"[FUNCTION CALL] void cube::inputCube()\n";
+    char ch;
+    std::string str[6]={"front", "right", "back", "left", "up", "down"};
+    vector<char*> inputCmdStr[6]={{"FL1>"}, {"FL1>"}, {"FL1>"}, {"SP1>", "FL1>"}, {"FL1>", "FL1>"}, {"FL1>"}};
     while(true){
         cout<<"Do you want to use existing file for input?\n[y/n]: ";
-        char ch=getchar();
+        ch=getchar();
         if(ch=='n'||ch=='N'){
-            if(readCamera()){
+            if(readCamera(str, inputCmdStr)){
                 cout<<"Successfully read cube from camera.\n";
+                break;
             }else{
                 cout<<"[ERROR] Camera input error\n";
                 exit(1);
@@ -127,16 +135,15 @@ void cube::inputCube(){
     }
     operations[opCnt++]="IN";
     std::cout<<"Begin cube input..\n";
-    char ch;
-    std::string str[6]={"front", "right", "back", "left", "up", "down"};
+    char rdch;
     for(int s=0;s<6;s++){
         std::cout<<"Enter for "<<str[s]<<" side:";
         for(int i=0;i<3;i++){
             for(int j=0;j<3;j++){
                 do{
-                    fscanf(infp, "%c", &ch);
-                }while(ch=='\n' || ch==' ');
-                sides[s].mat[i][j]=ch;
+                    fscanf(infp, "%c", &rdch);
+                }while(rdch=='\n' || rdch==' ');
+                sides[s].mat[i][j]=rdch;
             }
         }
         sides[s].i=s;
@@ -149,12 +156,17 @@ void cube::inputCube(){
     }
     std::cout<<"..indput done!\nPrinting input cube..\n";
     print();
+    if(ch=='y' || ch=='Y'){
+        std::cout<<"Position cube such a way that ["<<sides[front].mat[1][1]<<"] color at FRONT and ["<<sides[right].mat[1][1]<<"] color at DOWN";
+        getchar();
+    }
 }
 
-string cube::getOpStr(){
-    string cr,nx,op;
+void cube::getOpStr(){
+    string cr,nx,crop="";
     int cnt=1;
-    operations[opCnt++]="nop";
+    bool lock=false;
+    operations[opCnt++]="NO";
     for(int i=0;i<opCnt-1;i++){
         cr=operations[i];
         nx=operations[i+1];
@@ -162,29 +174,62 @@ string cube::getOpStr(){
             cnt++;
         }else{
             if(cnt==3){
-                if(cr=="RCC"){
-                    cr="RC";    
+                if(cr=="RC"){
+                    cr="RO";    
                     cnt=1;
-                }else if(cr=="RC"){
-                    cr="RCC";
+                }else if(cr=="RO"){
+                    cr="RC";
                     cnt=1;
-                }else if(cr=="SPCC"){
-                    cr="SPC";
+                }else if(cr=="SC"){
+                    cr="SP";
                     cnt=1;
-                }else if(cr=="SPC"){
-                    cr="SPCC";
+                }else if(cr=="SP"){
+                    cr="SC";
                     cnt=1;
                 }
             }
-            op+=(cr+"|");
-            op+=(((cnt%4)+48));
-            op+="\n";
-            cnt=1;
-            opStrCnt++;
+            if(cnt%4){
+                //if not zero operations
+                bool copy=false;
+                if(lock && (cr=="FL" || cr=="SP" || cr=="SC")){
+                    crop="UL1>";
+                    lock=false;
+                    copy=true;
+                }
+                if(!lock && (cr=="RO" || cr=="RC")){
+                    crop="LC1>";
+                    lock=true;
+                    copy=true;
+                }
+                if(copy){
+                    cout<<crop;
+                    for(int j=0;j<4;j++){
+                        op[opStrCnt][j]=crop[j];
+                    }
+                    opStrCnt++;
+                }
+                cout<<crop;
+                cnt=cnt%4;
+                if(cr=="FL"){
+                    while(cnt--){
+                        crop=cr+"1>";
+                        for(int j=0;j<4;j++){
+                            op[opStrCnt][j]=crop[j];
+                        }
+                        opStrCnt++;
+                    }
+                }else{
+                    crop=cr+(char)(cnt+48)+">";
+                    for(int j=0;j<4;j++){
+                        op[opStrCnt][j]=crop[j];
+                    }
+                    opStrCnt++;
+                }
+                cnt=1;
+            }
         }
     }
     opCnt--;
-    return op;
 }
 
 void cube::loadLeftSideCorners(){
@@ -303,7 +348,7 @@ void cube::rotateSurfaceCCW(int side){
 
 void cube::spinCW(){
     std::cout<<"[FUNCTION CALL] void cube::spinCW()\n";
-    operations[opCnt++]="SPC";
+    operations[opCnt++]="SP";
     //spin whole cube clockwise
     int tmp=front;
     front=up;
@@ -318,7 +363,7 @@ void cube::spinCW(){
 
 void cube::spinCCW(){
     std::cout<<"[FUNCTION CALL] void cube::spinCCW()\n";
-    operations[opCnt++]="SPCC";
+    operations[opCnt++]="SC";
     //spin whole cube counter clockwise
     int saved[3],i,tmp=front;
     front=down;
@@ -404,7 +449,7 @@ void cube::setColorToRight(char clr){
 
 void cube::rotateCCW(){
     std::cout<<"[FUNCTION CALL] void cube::rotateCCW()\n";
-    operations[opCnt++]="RCC";
+    operations[opCnt++]="RC";
     short int i;
     //save up
     char upSaved[3];
@@ -428,7 +473,7 @@ void cube::rotateCCW(){
 
 void cube::rotateCW(){
     std::cout<<"[FUNCTION CALL] void cube::rotateCW()\n";
-    operations[opCnt++]="RC";
+    operations[opCnt++]="RO";
     short int i;
     //save up
     char upSaved[3];
@@ -1389,32 +1434,47 @@ void cube::orientYellowCorner(){
     }
 }
 
-void setup() {
-  // put your setup code here, to run once:
-
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-}
-
 int main(){
     cube cb;
+    serialInit();
+    startSerialReceiveThread();
+    startSerialReceiveThread();
+    getchar(); //garbage collection
     cb.inputCube();
-    
-    cb.solveWhiteCross();
+    /*cb.solveWhiteCross();
+    cb.operations[cb.opCnt++]="DN1";
     cb.solveWhiteCorner();
+    cb.operations[cb.opCnt++]="DN2";
     cb.solveSecondLayer();
+    cb.operations[cb.opCnt++]="DN3";
     cb.solveYellowCross();
+    cb.operations[cb.opCnt++]="DN4";
     cb.positionYellowCorner();
+    cb.operations[cb.opCnt++]="DN5";*/
     cb.orientYellowCorner();
+    cb.operations[cb.opCnt++]="DN6";
     
-    
-    cout<<cb.getOpStr()<<"\n";
-    
+    cb.getOpStr();
+
     cb.print();
+    
     cout<<"Actual Total operations: "<<cb.opCnt<<"\n";
-    cout<<"Optimized Total operations: "<<cb.opStrCnt<<"\n";
-    // int tmp;
-    // std::cin>>tmp;
+    cout<<"Expanded Total operations: "<<cb.opStrCnt<<"\n";
+    string msg[6]={"\nWhite Cross Done\n", "\nWhite Corner Done\n", "\nSecond Layer Done\n", "\nYellow Cross Done\n", "\nYellow Corner Positioned\n", "\nYellow Corner done\n"};
+    for(int i=1;i<cb.opStrCnt;i++){
+        if(cb.op[i][0]=='D' && cb.op[i][1]=='N'){
+            int msgInd=cb.op[i][2]-48;
+            cout<<"======================"<<msg[msgInd-1]<<"======================\n";
+            getchar();getchar();
+            continue;
+        }
+        startSerialSendThread(cb.op[i]);
+        startSerialReceiveThread();
+        printf("Sent: %s ---> Performed: ",cb.op[i]);
+        getchar(); //wait for user
+        //system("clear");
+        cout<<"\n----------------------------------------------------------------\n";
+    }
+    //while(true)
+        
 }

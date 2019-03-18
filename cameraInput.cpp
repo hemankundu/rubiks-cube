@@ -1,18 +1,28 @@
 //g++ cameraInput.cpp `pkg-config opencv --cflags --libs`
+//g++ rubikCube.cpp `pkg-config opencv --cflags --libs`
+//g++ rubikCube.cpp `pkg-config opencv --cflags --libs` -lserial -lpthread -std=c++11 -pthread
+
+
+//LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libv4l/v4l1compat.so" ./a.out
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include<iostream>
 #include<string>
 #include<vector>
 #include<stdio.h>
+#include "serial.cpp"
 
 using namespace cv;
 using namespace std;
 
 
 string winName="input";
-int X=300, Y=200, GAP=60, SIZE=20;
-Scalar m[3][3]={Scalar(200)};
+int GAP=75, SIZE=25, WINDOWX=800, WINDOWY=600;
+
+int X=(WINDOWX/2)-(GAP + 1.5*SIZE)-145;
+int Y=(WINDOWY/2)-(GAP + 1.5*SIZE);
+
+Scalar m[3][3]={Scalar(255)};
 char clrs[3][3]={'\0'};
 const char outFileName[]="cube-color.txt", configFileName[]="color-config.txt";
 double prc=10;
@@ -101,26 +111,29 @@ bool configureColors(){
         return false;
     }
 
-    VideoCapture cap(0);
+    cout<<"Video device? \n:";
+    int camid=0;
+    cin>>camid;
+    VideoCapture cap(camid);
     Mat frame, frame2;
     if(!cap.isOpened()){
         cout<<"[ERROR] Camera could not be opened!\n";
         return false;
     }
     cout<<"Camera opened.\n";
-    string clrs="rbgywo";
+    string clrs="woyrbg";
     int c=0;
-    int x=500, y=300;
     bool read=false;
     cout<<"Bring "<<clrs[c++]<<" color..\n";
     Scalar scl=Scalar(255);
     for(;;){
         cap>>frame;
-        namedWindow("configure", WINDOW_NORMAL);
-        resizeWindow("configure", 1600, 860);
-        flip(frame, frame, 1);
+        
         frame.copyTo(frame2);
-        rectangle(frame2, Rect(x, y, SIZE, SIZE), scl, 3);
+        //frame.
+        namedWindow("configure", WINDOW_NORMAL);
+        resizeWindow("configure", WINDOWX, WINDOWY);
+        rectangle(frame2, Rect(X+GAP, Y+GAP, SIZE, SIZE), scl, 3);
         imshow("configure", frame2);
         int key=waitKey(20);
         if(key==27){
@@ -130,7 +143,7 @@ bool configureColors(){
         }else if(key==32){
             //SPACE
             Mat mask= Mat::zeros(frame.rows, frame.cols, CV_8U);
-            mask(Rect(x,y, SIZE, SIZE))=1;
+            mask(Rect(X+GAP, Y+GAP, SIZE, SIZE))=1;
             scl=mean(frame, mask);
             for(int i=0;i<3;i++){
                 if(scl[i]<colors[c-1].min[i]){
@@ -174,11 +187,12 @@ static void on_trackbar( int, void* )
 }
 
 
-bool readCamera(){
-    string str[7]={"front", "right", "back", "left", "up", "down", ""};
+bool readCamera(string* str, vector<char*>* inputCmdStr){
+    //string str[7]={"front", "right", "back", "left", "up", "down", ""};
     int s=0;
+
     while(true){
-        cout<<"Do you wabt to configure colors first?\n[y/n]: ";
+        cout<<"Do you want to configure colors first?\n[y/n]: ";
         char ch=getchar();
         if(ch=='y' || ch=='Y'){
             if(!configureColors()){
@@ -212,8 +226,15 @@ bool readCamera(){
         cout<<"[ERROR] Output file could not be created!\n";
         return false;
     }
-    VideoCapture cap(0);
+    cout<<"Video device? \n:";
+    int camid=0;
+    cin>>camid;
+    VideoCapture cap(camid);
     Mat frame, frame2;
+    namedWindow(winName, WINDOW_NORMAL);
+    resizeWindow(winName, WINDOWX, WINDOWY);
+    createTrackbar("", winName, &sliderVal, sliderVal_max, on_trackbar );
+
     if(!cap.isOpened()){
         cout<<"[ERROR] Camera could not be opened!\n";
         return false;
@@ -222,14 +243,8 @@ bool readCamera(){
     cout<<"Bring "<<str[s++]<<" side for input..\n";
     for(;;){
         cap>>frame;
-        namedWindow(winName, WINDOW_NORMAL);
-        resizeWindow(winName, 1600, 860);
-        //create taskbar
-        char TrackbarName[50]="Adjust Precession";
-        createTrackbar( TrackbarName, winName, &sliderVal, sliderVal_max, on_trackbar );
-        
-        flip(frame, frame, 1);
         frame.copyTo(frame2);
+        //flip(frame, frame, 1);
         for(int i=0;i<3;i++){
             for(int j=0;j<3;j++){
                 //boundingRect
@@ -248,10 +263,12 @@ bool readCamera(){
             bool success=readColors(frame);
             for(int i=0;i<3;i++){
                 for(int j=2; j>=0;j--){
-                    printf("%c ", clrs[j][i]);
+                    printf("%c ", clrs[i][j]);
+                    //putText(frame2, ""+clrs[i][j], Point(X+(i*GAP)+SIZE/2, Y+(j*GAP)+SIZE/2), FONT_HERSHEY_COMPLEX_SMALL, 1.0, Scalar(50,50,50), 1, CV_AA);
                 }
                 printf("\n");
             }
+            //imshow(winName, frame2);
             if(!success){
                 cout<<"[ERROR] Invalid read\n";
                 read=false;
@@ -259,27 +276,49 @@ bool readCamera(){
                 cout<<"Read success..\n";
                 read=true;
             }
-            
+            //sleep(1);
         }else if(key==10){
             //ENTER
             if(read){
                 read=false;
                 cout<<"Final input..\n";
-                for(int i=0;i<3;i++){
-                    for(int j=2; j>=0;j--){
-                        fprintf(outfp, "%c ", clrs[j][i]);
-                        printf("%c ", clrs[j][i]);
+                if(s-1==2 || s-1==5){
+                    //cout<<"if...............s="<<s<<"\n";
+                    for(int i=0;i<3;i++){
+                        for(int j=2; j>=0;j--){
+                            fprintf(outfp, "%c ", clrs[2-j][i]);
+                            printf("%c ", clrs[2-j][i]);
+                        }
+                        fprintf(outfp, "\n");
+                        printf("\n");
                     }
-                    fprintf(outfp, "\n");
-                    printf("\n");
+                }else{
+                    //cout<<"else...............s="<<s<<"\n";
+                    for(int i=0;i<3;i++){
+                        for(int j=2; j>=0;j--){
+                            fprintf(outfp, "%c ", clrs[j][2-i]);
+                            printf("%c ", clrs[j][2-i]);
+                        }
+                        fprintf(outfp, "\n");
+                        printf("\n");
+                    }
                 }
+                
                 fprintf(outfp, "\n");
-                if(s==6){
+                cout<<"Bringing "<<str[s++]<<" side for input..\n";
+                for(int i=0;i<inputCmdStr[s-2].size();i++){
+                    startSerialSendThread((char*)inputCmdStr[s-2][i]);
+                    startSerialReceiveThread();
+                    printf("Sent: %s ---> \nPerformed: ",inputCmdStr[s-2][i]);
+                    sleep(1);
+                }
+                cout<<"..done!\n";
+                if(s==7){
                     fclose(outfp);
+                    cap.release();
+                    destroyWindow(winName);
                     return true;
                 }
-                cout<<"Bring "<<str[s++]<<" side for input..\n";
-                
             }else{
                 cout<<"Read color first using SPACE\n";
             }
